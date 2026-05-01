@@ -1,0 +1,3 @@
+# Energy Arbitrage Controller
+
+A local manual-mode retail energy arbitrage controller for Brisbane, Queensland.
