@@ -1,0 +1,499 @@
+"""Tests for AEMO downloader."""
+
+import unittest
+import tempfile
+import csv
+import io
+import zipfile
+import urllib.request
+from pathlib import Path
+from datetime import datetime
+from unittest.mock import patch, MagicMock
+from src.aemo_downloader import download_aemo_dispatch_prices
+
+
+class TestAEMODownloader(unittest.TestCase):
+    """Test AEMO price data downloader."""
+
+    def _create_mock_aemo_zip(self, data_rows: list, filename: str = 'DispatchIS_202605010000.csv') -> bytes:
+        """Create a mock AEMO-style ZIP file in memory.
+        
+        Args:
+            data_rows: List of dicts with SETTLEMENTDATE, REGIONID, RRP.
+            filename: Name of the CSV file inside the ZIP.
+            
+        Returns:
+            ZIP file content as bytes.
+        """
+        # Create CSV content
+        csv_buffer = io.StringIO()
+        writer = csv.DictWriter(csv_buffer, fieldnames=['SETTLEMENTDATE', 'REGIONID', 'RRP'])
+        writer.writeheader()
+        writer.writerows(data_rows)
+        csv_content = csv_buffer.getvalue()
+        
+        # Create ZIP file in memory
+        zip_buffer = io.BytesIO()
+        with zipfile.ZipFile(zip_buffer, 'w') as z:
+            z.writestr(filename, csv_content.encode('utf-8'))
+        
+        return zip_buffer.getvalue()
+
+    def _create_mock_directory_html(self, zip_links: list) -> str:
+        """Create mock HTML directory listing.
+        
+        Args:
+            zip_links: List of ZIP filenames to include in the directory.
+            
+        Returns:
+            HTML content as string.
+        """
+        html = "<html><body><pre>\n"
+        for link in zip_links:
+            html += f'<a href="{link}">{link}</a>\n'
+        html += "</pre></body></html>"
+        return html
+
+    def test_download_valid_data(self):
+        """Test downloading valid AEMO data from multiple ZIP files."""
+        data_rows_1 = [
+            {'SETTLEMENTDATE': '2026-05-01T00:00:00', 'REGIONID': 'QLD1', 'RRP': '50.00'},
+            {'SETTLEMENTDATE': '2026-05-01T00:05:00', 'REGIONID': 'QLD1', 'RRP': '100.00'},
+        ]
+        data_rows_2 = [
+            {'SETTLEMENTDATE': '2026-05-01T00:10:00', 'REGIONID': 'QLD1', 'RRP': '200.00'},
+        ]
+        
+        mock_zip_1 = self._create_mock_aemo_zip(data_rows_1)
+        mock_zip_2 = self._create_mock_aemo_zip(data_rows_2)
+        
+        # Mock directory listing with two ZIP files
+        mock_html = self._create_mock_directory_html([
+            'PUBLIC_DISPATCHIS_202605010005_0000000515537670.zip',
+            'PUBLIC_DISPATCHIS_202605010010_0000000515538228.zip'
+        ])
+        
+        with tempfile.NamedTemporaryFile(suffix='.csv', delete=False) as f:
+            output_file = f.name
+        
+        try:
+            def mock_fetch_url_bytes(url):
+                if 'DispatchIS_Reports' in url:
+                    return mock_html.encode('utf-8')
+                    # Directory listing
+                    return mock_html.encode('utf-8')
+                elif '0000000515537670.zip' in url:
+                    # First ZIP file
+                    return mock_zip_1
+                elif '0000000515538228.zip' in url:
+                    # Second ZIP file
+                    return mock_zip_2
+                else:
+                    raise ValueError(f"Unexpected URL: {url}")
+                    raise ValueError(f"Unexpected URL: {url}")
+            
+            with patch('src.aemo_downloader.fetch_url_bytes', side_effect=mock_fetch_url_bytes):
+                download_aemo_dispatch_prices('2026-05-01', output_file)
+            
+            # Verify output file
+            with open(output_file, 'r') as f:
+                reader = csv.DictReader(f)
+                rows = list(reader)
+            
+            assert len(rows) == 3
+            assert rows[0]['region'] == 'QLD1'
+            assert float(rows[0]['price_per_kwh']) == 0.05  # 50/1000
+            assert float(rows[1]['price_per_kwh']) == 0.10  # 100/1000
+            assert float(rows[2]['price_per_kwh']) == 0.20  # 200/1000
+        
+        finally:
+            Path(output_file).unlink()
+
+    def test_download_filters_qld1(self):
+        """Test that download filters for QLD1 only."""
+        data_rows = [
+            {'SETTLEMENTDATE': '2026-05-01T00:00:00', 'REGIONID': 'QLD1', 'RRP': '50.00'},
+            {'SETTLEMENTDATE': '2026-05-01T00:05:00', 'REGIONID': 'NSW1', 'RRP': '100.00'},
+            {'SETTLEMENTDATE': '2026-05-01T00:10:00', 'REGIONID': 'QLD1', 'RRP': '200.00'},
+            {'SETTLEMENTDATE': '2026-05-01T00:15:00', 'REGIONID': 'VIC1', 'RRP': '300.00'},
+        ]
+        
+        mock_zip = self._create_mock_aemo_zip(data_rows)
+        mock_html = self._create_mock_directory_html([
+            'PUBLIC_DISPATCHIS_202605010005_0000000515537670.zip'
+        ])
+        
+        with tempfile.NamedTemporaryFile(suffix='.csv', delete=False) as f:
+            output_file = f.name
+            def mock_fetch_url_bytes(url):
+                if 'DispatchIS_Reports' in url:
+                    return mock_html.encode('utf-8')
+                else:
+                    return mock_zip
+                    mock_response.read.return_value = mock_zip
+                    return value
+            
+            with patch('src.aemo_downloader.fetch_url_bytes', side_effect=mock_fetch_url_bytes):
+                download_aemo_dispatch_prices('2026-05-01', output_file)
+            
+            # Verify only QLD1 rows
+            with open(output_file, 'r') as f:
+                reader = csv.DictReader(f)
+                rows = list(reader)
+            
+            assert len(rows) == 2
+            assert all(r['region'] == 'QLD1' for r in rows)
+        
+        finally:
+            Path(output_file).unlink()
+
+    def test_download_rrp_conversion(self):
+        """Test RRP conversion from $/MWh to $/kWh."""
+        data_rows = [
+            {'SETTLEMENTDATE': '2026-05-01T00:00:00', 'REGIONID': 'QLD1', 'RRP': '1000.00'},
+            {'SETTLEMENTDATE': '2026-05-01T00:05:00', 'REGIONID': 'QLD1', 'RRP': '2500.00'},
+            {'SETTLEMENTDATE': '2026-05-01T00:10:00', 'REGIONID': 'QLD1', 'RRP': '-500.00'},
+        ]
+        
+        mock_zip = self._create_mock_aemo_zip(data_rows)
+        mock_html = self._create_mock_directory_html([
+            'PUBLIC_DISPATCHIS_202605010005_0000000515537670.zip'
+        ])
+        
+        with tempfile.NamedTemporaryFile(suffix='.csv', delete=False) as f:
+            output_file = f.name
+        
+        try:
+            def mock_fetch_url_bytes(url, timeout=None):
+                if 'DispatchIS_Reports' in url:
+                    return mock_html.encode('utf-8')
+                    # Direct return
+                    mock_response.read.return_value = mock_html.encode('utf-8')
+                    return value
+                else:
+                    # Direct return
+                    mock_response.read.return_value = mock_zip
+                    return value
+            
+            with patch('src.aemo_downloader.fetch_url_bytes', side_effect=mock_fetch_url_bytes):
+                download_aemo_dispatch_prices('2026-05-01', output_file)
+            
+            with open(output_file, 'r') as f:
+                reader = csv.DictReader(f)
+                rows = list(reader)
+            
+            assert float(rows[0]['price_per_kwh']) == 1.0
+            assert float(rows[1]['price_per_kwh']) == 2.5
+            assert float(rows[2]['price_per_kwh']) == -0.5
+        
+        finally:
+            Path(output_file).unlink()
+
+    def test_invalid_date_format(self):
+        """Test error on invalid date format."""
+        with self.assertRaises(ValueError) as ctx:
+            download_aemo_dispatch_prices('01-05-2026', '/tmp/output.csv')
+        
+        assert 'Invalid date format' in str(ctx.exception)
+
+    def test_download_failure(self):
+        """Test error on download failure."""
+        from urllib.error import URLError
+        
+        with tempfile.NamedTemporaryFile(suffix='.csv', delete=False) as f:
+            output_file = f.name
+        
+        try:
+            with patch('src.aemo_downloader.fetch_url_bytes') as mock_urlopen:
+                mock_urlopen.side_effect = URLError('Connection refused')
+                
+                with self.assertRaises(ValueError) as ctx:
+                    download_aemo_dispatch_prices('2026-05-01', output_file)
+                
+                assert 'Failed to access NEMWeb directory' in str(ctx.exception)
+        
+        finally:
+            if Path(output_file).exists():
+                Path(output_file).unlink()
+
+    def test_invalid_zip_file(self):
+        """Test error on invalid ZIP file."""
+        mock_html = self._create_mock_directory_html([
+            'PUBLIC_DISPATCHIS_202605010005_0000000515537670.zip'
+        ])
+        
+        with tempfile.NamedTemporaryFile(suffix='.csv', delete=False) as f:
+            output_file = f.name
+        
+        try:
+            def mock_fetch_url_bytes(url, timeout=None):
+                if 'DispatchIS_Reports' in url:
+                    return mock_html.encode('utf-8')
+                    # Direct return
+                    mock_response.read.return_value = mock_html.encode('utf-8')
+                    return value
+                else:
+                    # Direct return
+                    mock_response.read.return_value = b'not a zip file'
+                    return value
+            
+            with patch('src.aemo_downloader.fetch_url_bytes', side_effect=mock_fetch_url_bytes):
+                with self.assertRaises(ValueError) as ctx:
+                    download_aemo_dispatch_prices('2026-05-01', output_file)
+                
+                assert 'Invalid ZIP file' in str(ctx.exception)
+        
+        finally:
+            if Path(output_file).exists():
+                Path(output_file).unlink()
+
+    def test_missing_required_columns(self):
+        """Test error when required columns are missing."""
+        # Create ZIP with wrong column names
+        csv_buffer = io.StringIO()
+        writer = csv.DictWriter(csv_buffer, fieldnames=['DATE', 'REGION', 'PRICE'])
+        writer.writeheader()
+        writer.writerow({'DATE': '2026-05-01', 'REGION': 'QLD1', 'PRICE': '100'})
+        
+        zip_buffer = io.BytesIO()
+        with zipfile.ZipFile(zip_buffer, 'w') as z:
+            z.writestr('DispatchIS_20260501.csv', csv_buffer.getvalue().encode('utf-8'))
+        
+        mock_html = self._create_mock_directory_html([
+            'PUBLIC_DISPATCHIS_202605010005_0000000515537670.zip'
+        ])
+        
+        with tempfile.NamedTemporaryFile(suffix='.csv', delete=False) as f:
+            output_file = f.name
+        
+        try:
+            def mock_fetch_url_bytes(url, timeout=None):
+                if 'DispatchIS_Reports' in url:
+                    return mock_html.encode('utf-8')
+                    # Direct return
+                    mock_response.read.return_value = mock_html.encode('utf-8')
+                    return value
+                else:
+                    # Direct return
+                    mock_response.read.return_value = zip_buffer.getvalue()
+                    return value
+            
+            with patch('src.aemo_downloader.fetch_url_bytes', side_effect=mock_fetch_url_bytes):
+                with self.assertRaises(ValueError) as ctx:
+                    download_aemo_dispatch_prices('2026-05-01', output_file)
+                
+                assert 'missing required columns' in str(ctx.exception).lower()
+        
+        finally:
+            if Path(output_file).exists():
+                Path(output_file).unlink()
+
+    def test_no_qld1_data(self):
+        """Test error when no QLD1 data is found."""
+        data_rows = [
+            {'SETTLEMENTDATE': '2026-05-01T00:00:00', 'REGIONID': 'NSW1', 'RRP': '50.00'},
+            {'SETTLEMENTDATE': '2026-05-01T00:05:00', 'REGIONID': 'VIC1', 'RRP': '100.00'},
+        ]
+        
+        mock_zip = self._create_mock_aemo_zip(data_rows)
+        mock_html = self._create_mock_directory_html([
+            'PUBLIC_DISPATCHIS_202605010005_0000000515537670.zip'
+        ])
+        
+        with tempfile.NamedTemporaryFile(suffix='.csv', delete=False) as f:
+            output_file = f.name
+        
+        try:
+            def mock_fetch_url_bytes(url, timeout=None):
+                if 'DispatchIS_Reports' in url:
+                    return mock_html.encode('utf-8')
+                    # Direct return
+                    mock_response.read.return_value = mock_html.encode('utf-8')
+                    return value
+                else:
+                    # Direct return
+                    mock_response.read.return_value = mock_zip
+                    return value
+            
+            with patch('src.aemo_downloader.fetch_url_bytes', side_effect=mock_fetch_url_bytes):
+                with self.assertRaises(ValueError) as ctx:
+                    download_aemo_dispatch_prices('2026-05-01', output_file)
+                
+                assert 'No QLD1 price data found' in str(ctx.exception)
+        
+        finally:
+            if Path(output_file).exists():
+                Path(output_file).unlink()
+
+    def test_output_directory_creation(self):
+        """Test that output directory is created if it doesn't exist."""
+        data_rows = [
+            {'SETTLEMENTDATE': '2026-05-01T00:00:00', 'REGIONID': 'QLD1', 'RRP': '50.00'},
+        ]
+        
+        mock_zip = self._create_mock_aemo_zip(data_rows)
+        mock_html = self._create_mock_directory_html([
+            'PUBLIC_DISPATCHIS_202605010005_0000000515537670.zip'
+        ])
+        
+        with tempfile.TemporaryDirectory() as tmpdir:
+            output_file = f"{tmpdir}/nested/dir/qld_prices.csv"
+            
+            def mock_fetch_url_bytes(url, timeout=None):
+                if 'DispatchIS_Reports' in url:
+                    return mock_html.encode('utf-8')
+                    # Direct return
+                    mock_response.read.return_value = mock_html.encode('utf-8')
+                    return value
+                else:
+                    # Direct return
+                    mock_response.read.return_value = mock_zip
+                    return value
+            
+            with patch('src.aemo_downloader.fetch_url_bytes', side_effect=mock_fetch_url_bytes):
+                download_aemo_dispatch_prices('2026-05-01', output_file)
+            
+            # Verify file was created
+            assert Path(output_file).exists()
+
+    def test_no_matching_files_found(self):
+        """Test error when no matching ZIP files are found for the date."""
+        # Directory listing with files for different dates
+        mock_html = self._create_mock_directory_html([
+            'PUBLIC_DISPATCHIS_202605020005_0000000515696557.zip',  # May 2
+            'PUBLIC_DISPATCHIS_202605030005_0000000515696558.zip',  # May 3
+        ])
+        
+        with tempfile.NamedTemporaryFile(suffix='.csv', delete=False) as f:
+            output_file = f.name
+        
+        try:
+            with patch('src.aemo_downloader.fetch_url_bytes') as mock_urlopen:
+                mock_response = MagicMock()
+                mock_response.read.return_value = mock_html.encode('utf-8')
+                mock_urlopen.return_value = mock_response
+                
+                with self.assertRaises(ValueError) as ctx:
+                    download_aemo_dispatch_prices('2026-05-01', output_file)
+                
+                assert 'No matching DispatchIS files found in CURRENT directory for date 2026-05-01' in str(ctx.exception)
+        
+        finally:
+            if Path(output_file).exists():
+                Path(output_file).unlink()
+
+    def test_multiple_files_for_date(self):
+        """Test downloading multiple ZIP files for the same date."""
+        data_rows_1 = [
+            {'SETTLEMENTDATE': '2026-05-01T00:00:00', 'REGIONID': 'QLD1', 'RRP': '50.00'},
+        ]
+        data_rows_2 = [
+            {'SETTLEMENTDATE': '2026-05-01T00:05:00', 'REGIONID': 'QLD1', 'RRP': '100.00'},
+        ]
+        data_rows_3 = [
+            {'SETTLEMENTDATE': '2026-05-01T00:10:00', 'REGIONID': 'QLD1', 'RRP': '200.00'},
+        ]
+        
+        mock_zip_1 = self._create_mock_aemo_zip(data_rows_1)
+        mock_zip_2 = self._create_mock_aemo_zip(data_rows_2)
+        mock_zip_3 = self._create_mock_aemo_zip(data_rows_3)
+        
+        # Directory with multiple files for May 1, plus one for May 2
+        mock_html = self._create_mock_directory_html([
+            'PUBLIC_DISPATCHIS_202605010005_0000000515537670.zip',
+            'PUBLIC_DISPATCHIS_202605010010_0000000515538228.zip',
+            'PUBLIC_DISPATCHIS_202605010015_0000000515538230.zip',
+            'PUBLIC_DISPATCHIS_202605020005_0000000515696557.zip',  # Different date
+        ])
+        
+        with tempfile.NamedTemporaryFile(suffix='.csv', delete=False) as f:
+            output_file = f.name
+        
+        try:
+            def mock_fetch_url_bytes(url, timeout=None):
+                if 'DispatchIS_Reports' in url:
+                    return mock_html.encode('utf-8')
+                    # Direct return
+                    mock_response.read.return_value = mock_html.encode('utf-8')
+                    return value
+                elif '0515537670.zip' in url:
+                    # Direct return
+                    mock_response.read.return_value = mock_zip_1
+                    return value
+                elif '0515538228.zip' in url:
+                    # Direct return
+                    # Direct return
+                    mock_response.read.return_value = mock_zip_3
+                    return value
+                else:
+                    raise ValueError(f"Unexpected URL: {url}")
+            
+            with patch('src.aemo_downloader.fetch_url_bytes', side_effect=mock_fetch_url_bytes):
+                download_aemo_dispatch_prices('2026-05-01', output_file)
+            
+            # Verify all data from the 3 May 1 files was combined
+            with open(output_file, 'r') as f:
+                reader = csv.DictReader(f)
+                rows = list(reader)
+            
+            assert len(rows) == 3
+            # Should be sorted by timestamp
+            assert rows[0]['timestamp'] == '2026-05-01T00:00:00'
+            assert rows[1]['timestamp'] == '2026-05-01T00:05:00'
+            assert rows[2]['timestamp'] == '2026-05-01T00:10:00'
+        
+        finally:
+            Path(output_file).unlink()
+
+    def test_partial_download_failure(self):
+        """Test that download continues when one ZIP file fails."""
+        data_rows = [
+            {'SETTLEMENTDATE': '2026-05-01T00:00:00', 'REGIONID': 'QLD1', 'RRP': '50.00'},
+        ]
+        
+        mock_zip = self._create_mock_aemo_zip(data_rows)
+        
+        # Directory with two files for May 1
+        mock_html = self._create_mock_directory_html([
+            'PUBLIC_DISPATCHIS_202605010005_0000000515537670.zip',
+            'PUBLIC_DISPATCHIS_202605010010_0000000515538228.zip',
+        ])
+        
+        with tempfile.NamedTemporaryFile(suffix='.csv', delete=False) as f:
+            output_file = f.name
+        
+        try:
+            def mock_fetch_url_bytes(url, timeout=None):
+                if 'DispatchIS_Reports' in url:
+                    return mock_html.encode('utf-8')
+                    # Direct return
+                    mock_response.read.return_value = mock_html.encode('utf-8')
+                    return value
+                elif '0515537670.zip' in url:
+                    # First file succeeds
+                    # Direct return
+                    mock_response.read.return_value = mock_zip
+                    return value
+                elif '0515538228.zip' in url:
+                    # Second file fails
+                    raise URLError('Connection failed')
+                else:
+                    raise ValueError(f"Unexpected URL: {url}")
+            
+            with patch('src.aemo_downloader.fetch_url_bytes', side_effect=mock_fetch_url_bytes):
+                download_aemo_dispatch_prices('2026-05-01', output_file)
+            
+            # Should still get data from the successful download
+            with open(output_file, 'r') as f:
+                reader = csv.DictReader(f)
+                rows = list(reader)
+            
+            assert len(rows) == 1
+            assert rows[0]['region'] == 'QLD1'
+        
+        finally:
+            Path(output_file).unlink()
+
+
+if __name__ == '__main__':
+    unittest.main()

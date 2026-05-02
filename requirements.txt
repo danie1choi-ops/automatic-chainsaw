@@ -1,0 +1,9 @@
+# Energy Arbitrage Controller
+
+# Core dependencies
+nemosis>=3.0.0
+pandas>=1.3.0
+pytest>=7.0.0
+
+# Standard library packages (usually included with Python)
+# argparse, csv, datetime, io, pathlib, re, sys, typing, unittest, urllib, zipfile
