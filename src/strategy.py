@@ -1,6 +1,8 @@
 """Arbitrage strategy for battery charging/discharging decisions."""
 
 from dataclasses import dataclass
+from typing import List, Optional
+import numpy as np
 from src import config
 
 
@@ -124,40 +126,65 @@ class Strategy:
 def get_action(
     price: float,
     soc_percent: float,
+    price_history: Optional[List[float]] = None,
     charge_threshold: float = None,
     export_threshold: float = None,
     max_soc: float = None,
     min_soc: float = None,
+    window_size: int = 288,
+    export_percentile: float = 0.95,
 ) -> str:
     """Get the action (CHARGE, HOLD, or EXPORT) based on price and battery SoC.
     
     Logic:
     - If price <= CHARGE_THRESHOLD and soc < MAX_SOC → CHARGE
-    - Elif price >= EXPORT_THRESHOLD and soc > MIN_SOC → EXPORT
+    - Elif price >= DYNAMIC_EXPORT_THRESHOLD and soc > MIN_SOC → EXPORT
     - Else → HOLD
+    
+    The dynamic export threshold is the 95th percentile of prices over the last
+    288 intervals (1 day). Falls back to config threshold if insufficient history.
     
     Args:
         price: Current price in $/kWh.
         soc_percent: Current battery SoC in %.
+        price_history: List of historical prices for dynamic threshold calculation.
         charge_threshold: Price threshold to charge (default from config).
-        export_threshold: Price threshold to export (default from config).
+        export_threshold: Fallback export threshold (default from config).
         max_soc: Maximum SoC limit (default from config).
         min_soc: Minimum SoC limit (default from config).
+        window_size: Number of intervals for rolling window (default 288 = 1 day).
+        export_percentile: Percentile for export threshold (default 0.95 = 95th).
     
     Returns:
         Action string: CHARGE, HOLD, or EXPORT.
     """
     charge_threshold = charge_threshold or config.CHARGE_PRICE_THRESHOLD
-    export_threshold = export_threshold or config.EXPORT_PRICE_THRESHOLD
+    static_export_threshold = export_threshold or config.EXPORT_PRICE_THRESHOLD
     max_soc = max_soc or config.MAX_SOC_PERCENT
     min_soc = min_soc or config.MIN_SOC_PERCENT
+    
+    # Calculate dynamic export threshold based on rolling percentile
+    dynamic_export_threshold = static_export_threshold
+    if price_history is not None and len(price_history) >= window_size:
+        # Use percentile of last window_size prices
+        recent_prices = price_history[-window_size:]
+        dynamic_export_threshold = np.percentile(recent_prices, export_percentile * 100)
     
     # Rule 1: CHARGE if price <= threshold and SoC < max
     if price <= charge_threshold and soc_percent < max_soc:
         return Action.CHARGE
     
-    # Rule 2: EXPORT if price >= threshold and SoC > min
-    if price >= export_threshold and soc_percent > min_soc:
+    # Rule 2: EXPORT if price >= dynamic threshold and SoC > min
+    if price >= dynamic_export_threshold and soc_percent > min_soc:
+        # Compute momentum from the last 30 minutes (6 intervals)
+        if price_history is not None and len(price_history) >= 6:
+            recent_prices = price_history[-6:]
+            trend = recent_prices[-1] - recent_prices[0]
+            strong_threshold = 0.0
+            if trend > strong_threshold:
+                return Action.EXPORT  # spike → act fast
+            else:
+                return Action.EXPORT  # no blocking
         return Action.EXPORT
     
     # Rule 3: HOLD otherwise

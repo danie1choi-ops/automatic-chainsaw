@@ -109,8 +109,8 @@ def main():
         # Get file path
         file_path = args.file
         if not file_path:
-            # Default to sample_prices.csv
-            file_path = "data/sample_prices.csv"
+            print("Error: Backtest requires --file argument")
+            sys.exit(1)
         
         # Check if file exists
         if not Path(file_path).exists():
@@ -118,6 +118,7 @@ def main():
             print("Please provide a valid CSV file with price data.")
             sys.exit(1)
         
+        print(f"Running backtest on: {file_path}")
         # Load price data
         print(f"Loading price data from: {file_path}")
         price_data = load_price_data(file_path)

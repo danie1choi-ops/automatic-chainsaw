@@ -34,6 +34,7 @@ def run_backtest(price_data: List[PricePoint]) -> dict:
     total_charged_kwh = 0.0
     total_exported_kwh = 0.0
     export_count = 0
+    price_history = []  # Rolling price history for dynamic threshold
     interval_results = []
     
     # Ensure output directory exists
@@ -55,10 +56,14 @@ def run_backtest(price_data: List[PricePoint]) -> dict:
     
     # Process each price point
     for i, price_point in enumerate(price_data):
-        # Get action using simple strategy function
+        # Add current price to history for dynamic threshold calculation
+        price_history.append(price_point.price_per_kwh)
+        
+        # Get action using strategy function with dynamic threshold
         action = get_action(
             price=price_point.price_per_kwh,
             soc_percent=battery.soc_percent,
+            price_history=price_history,
         )
         
         # Determine reason
