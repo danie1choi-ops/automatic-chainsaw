@@ -25,7 +25,7 @@ TOTAL_BATTERY_SYSTEM_COST = BATTERY_PURCHASE_COST + INSTALLATION_COST  # $ - tot
 
 # Price thresholds for arbitrage
 CHARGE_PRICE_THRESHOLD = 0.05  # $/kWh - below this, charge
-EXPORT_PRICE_THRESHOLD = 0.30  # $/kWh - above this, export
+EXPORT_PRICE_THRESHOLD = 0.24  # $/kWh - above this, export
 
 # Time intervals
 INTERVAL_MINUTES = 5  # Price data interval in minutes

@@ -8,7 +8,7 @@ from typing import List
 from src import config
 from src.data_loader import PricePoint, load_price_data
 from src.battery_model import BatteryModel
-from src.strategy import Strategy, Action
+from src.strategy import Action, get_action
 
 
 # Output directory
@@ -27,13 +27,13 @@ def run_backtest(price_data: List[PricePoint]) -> dict:
     """
     # Initialize components
     battery = BatteryModel()
-    strategy = Strategy()
     
     # Tracking variables
     total_gross_profit = 0.0
     total_degradation_cost = 0.0
     total_charged_kwh = 0.0
     total_exported_kwh = 0.0
+    export_count = 0
     interval_results = []
     
     # Ensure output directory exists
@@ -55,28 +55,32 @@ def run_backtest(price_data: List[PricePoint]) -> dict:
     
     # Process each price point
     for i, price_point in enumerate(price_data):
-        # Get previous SoC
-        prev_soc = battery.soc_percent
-        
-        # Make decision
-        decision = strategy.decide(
-            price_per_kwh=price_point.price_per_kwh,
-            battery_soc_percent=battery.soc_percent,
+        # Get action using simple strategy function
+        action = get_action(
+            price=price_point.price_per_kwh,
+            soc_percent=battery.soc_percent,
         )
+        
+        # Determine reason
+        if action == Action.CHARGE:
+            reason = f"Price {price_point.price_per_kwh:.4f} <= threshold {config.CHARGE_PRICE_THRESHOLD:.4f}"
+        elif action == Action.EXPORT:
+            reason = f"Price {price_point.price_per_kwh:.4f} >= threshold {config.EXPORT_PRICE_THRESHOLD:.4f}"
+        else:
+            reason = "No price signal or SoC constraint"
         
         # Calculate energy amount
         interval_hours = config.INTERVAL_MINUTES / 60.0
-        energy_amount = strategy.calculate_energy_amount(
-            decision=decision,
-            battery_capacity_kwh=config.BATTERY_CAPACITY_KWH,
-            interval_hours=interval_hours,
-        )
-        
-        # Execute action
         energy_kwh = 0.0
         cashflow = 0.0
         
-        if decision.action == Action.CHARGE:
+        # Execute action
+        if action == Action.CHARGE:
+            # Full usable capacity per interval
+            usable_capacity = config.BATTERY_CAPACITY_KWH * 0.75
+            max_power_kwh = config.MAX_CHARGE_KW * interval_hours
+            energy_amount = min(usable_capacity, max_power_kwh)
+            
             # Calculate how much we can actually charge
             actual_charge = battery.charge(energy_amount, interval_hours)
             energy_kwh = actual_charge
@@ -84,13 +88,31 @@ def run_backtest(price_data: List[PricePoint]) -> dict:
             cashflow = -actual_charge * price_point.price_per_kwh
             total_charged_kwh += actual_charge
             
-        elif decision.action == Action.EXPORT:
+            # Assert SoC stays within bounds
+            assert battery.soc_percent >= config.MIN_SOC_PERCENT, \
+                f"CHARGE action: SoC {battery.soc_percent:.1f}% dropped below MIN {config.MIN_SOC_PERCENT}%"
+            assert battery.soc_percent <= config.MAX_SOC_PERCENT, \
+                f"CHARGE action: SoC {battery.soc_percent:.1f}% exceeded MAX {config.MAX_SOC_PERCENT}%"
+            
+        elif action == Action.EXPORT:
+            export_count += 1
+            # Full usable capacity per interval
+            usable_capacity = config.BATTERY_CAPACITY_KWH * 0.75
+            max_power_kwh = config.MAX_DISCHARGE_KW * interval_hours
+            energy_amount = min(usable_capacity, max_power_kwh)
+            
             # Calculate how much we can actually discharge
             actual_discharge = battery.discharge(energy_amount, interval_hours)
             energy_kwh = -actual_discharge
             # Revenue from export (positive cashflow)
             cashflow = actual_discharge * price_point.price_per_kwh
             total_exported_kwh += actual_discharge
+            
+            # Assert SoC stays within bounds
+            assert battery.soc_percent >= config.MIN_SOC_PERCENT, \
+                f"EXPORT action: SoC {battery.soc_percent:.1f}% dropped below MIN {config.MIN_SOC_PERCENT}%"
+            assert battery.soc_percent <= config.MAX_SOC_PERCENT, \
+                f"EXPORT action: SoC {battery.soc_percent:.1f}% exceeded MAX {config.MAX_SOC_PERCENT}%"
         
         # Calculate degradation cost
         degradation_cost = abs(energy_kwh) * config.DEGRADATION_COST_PER_KWH
@@ -101,12 +123,18 @@ def run_backtest(price_data: List[PricePoint]) -> dict:
         cumulative_profit += net_cashflow
         total_gross_profit += cashflow
         
+        # Final assertion: SoC must remain within valid bounds
+        assert battery.soc_percent >= config.MIN_SOC_PERCENT, \
+            f"Interval {i}: SoC {battery.soc_percent:.1f}% dropped below MIN {config.MIN_SOC_PERCENT}%"
+        assert battery.soc_percent <= config.MAX_SOC_PERCENT, \
+            f"Interval {i}: SoC {battery.soc_percent:.1f}% exceeded MAX {config.MAX_SOC_PERCENT}%"
+        
         # Log result
         interval_results.append({
             'timestamp': price_point.timestamp,
             'price_per_kwh': price_point.price_per_kwh,
-            'action': decision.action,
-            'reason': decision.reason,
+            'action': action,
+            'reason': reason,
             'soc_percent': battery.soc_percent,
             'energy_kwh': energy_kwh,
             'cashflow': net_cashflow,
@@ -119,8 +147,8 @@ def run_backtest(price_data: List[PricePoint]) -> dict:
             writer.writerow([
                 price_point.timestamp.isoformat(),
                 price_point.price_per_kwh,
-                decision.action,
-                decision.reason,
+                action,
+                reason,
                 f"{battery.soc_percent:.1f}",
                 f"{energy_kwh:.3f}",
                 f"{net_cashflow:.4f}",
@@ -140,6 +168,7 @@ def run_backtest(price_data: List[PricePoint]) -> dict:
         'equivalent_cycles': equivalent_cycles,
         'ending_soc': battery.soc_percent,
         'num_intervals': len(price_data),
+        'export_count': export_count,
     }
 
 
@@ -155,6 +184,7 @@ def print_backtest_results(results: dict):
     print("-" * 60)
     print(f"Charged kWh:         {results['total_charged_kwh']:.2f} kWh")
     print(f"Exported kWh:        {results['total_exported_kwh']:.2f} kWh")
+    print(f"Total EXPORT actions: {results['export_count']}")
     print(f"Equivalent Cycles:   {results['equivalent_cycles']:.2f}")
     print(f"Ending SoC:          {results['ending_soc']:.1f}%")
     print("=" * 60)

@@ -47,6 +47,13 @@ class BatteryModel:
         self.soc_percent = self.initial_soc_percent
         self._reset()
     
+    def _clamp_soc(self):
+        """Clamp SoC to valid range [MIN_SOC, MAX_SOC]."""
+        self.soc_percent = max(
+            self.min_soc_percent,
+            min(self.max_soc_percent, self.soc_percent)
+        )
+    
     def _reset(self):
         """Reset battery to initial state."""
         self.soc_percent = self.initial_soc_percent
@@ -106,6 +113,10 @@ class BatteryModel:
         Returns:
             Actual amount of energy charged in kWh.
         """
+        # Cannot charge if already at max SoC
+        if self.soc_percent >= self.max_soc_percent:
+            return 0.0
+        
         # Limit by max energy capacity
         max_add = self.max_energy_kwh - self.energy_stored_kwh
         actual_kwh = min(amount_kwh, max_add)
@@ -115,13 +126,13 @@ class BatteryModel:
             max_power_kwh = self.max_charge_kw * interval_hours
             actual_kwh = min(actual_kwh, max_power_kwh)
         
-        # Apply round trip efficiency losses when charging
-        # (energy in = energy out / efficiency)
+        # Update state: simply add the energy to battery
         if actual_kwh > 0:
-            energy_in = actual_kwh / self.round_trip_efficiency
-            # But we only store what fits
-            actual_stored = min(energy_in, max_add)
-            self.soc_percent = (actual_stored / self.capacity_kwh) * 100
+            new_energy = self.energy_stored_kwh + actual_kwh
+            self.soc_percent = (new_energy / self.capacity_kwh) * 100
+        
+        # Clamp to ensure SoC stays within bounds
+        self._clamp_soc()
         
         return actual_kwh
     
@@ -135,19 +146,31 @@ class BatteryModel:
         Returns:
             Actual amount of energy discharged in kWh.
         """
-        # Limit by min SoC
-        min_usable = self.energy_stored_kwh - self.min_energy_kwh
-        actual_kwh = min(amount_kwh, min_usable)
+        # Cannot discharge if already at or below min SoC
+        if self.soc_percent <= self.min_soc_percent:
+            return 0.0
+        
+        # Calculate max discharge based on maintaining MIN_SOC
+        max_discharge_energy = self.energy_stored_kwh - self.min_energy_kwh
+        
+        # If max_discharge_energy is too small, don't discharge
+        if max_discharge_energy <= 0:
+            return 0.0
+        
+        actual_kwh = min(amount_kwh, max_discharge_energy)
         
         # Limit by power if interval is specified
         if interval_hours and interval_hours > 0:
             max_power_kwh = self.max_discharge_kw * interval_hours
             actual_kwh = min(actual_kwh, max_power_kwh)
         
-        # Apply round trip efficiency losses
-        # (energy out = energy in * efficiency)
+        # Update state: subtract the discharged energy
         if actual_kwh > 0:
-            self.soc_percent = ((self.energy_stored_kwh - actual_kwh) / self.capacity_kwh) * 100
+            new_energy = self.energy_stored_kwh - actual_kwh
+            self.soc_percent = (new_energy / self.capacity_kwh) * 100
+        
+        # Clamp to ensure SoC stays within bounds
+        self._clamp_soc()
         
         return actual_kwh
     

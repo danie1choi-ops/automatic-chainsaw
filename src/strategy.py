@@ -119,3 +119,46 @@ class Strategy:
             return min(usable_capacity, max_power_kwh)
         
         return usable_capacity
+
+
+def get_action(
+    price: float,
+    soc_percent: float,
+    charge_threshold: float = None,
+    export_threshold: float = None,
+    max_soc: float = None,
+    min_soc: float = None,
+) -> str:
+    """Get the action (CHARGE, HOLD, or EXPORT) based on price and battery SoC.
+    
+    Logic:
+    - If price <= CHARGE_THRESHOLD and soc < MAX_SOC → CHARGE
+    - Elif price >= EXPORT_THRESHOLD and soc > MIN_SOC → EXPORT
+    - Else → HOLD
+    
+    Args:
+        price: Current price in $/kWh.
+        soc_percent: Current battery SoC in %.
+        charge_threshold: Price threshold to charge (default from config).
+        export_threshold: Price threshold to export (default from config).
+        max_soc: Maximum SoC limit (default from config).
+        min_soc: Minimum SoC limit (default from config).
+    
+    Returns:
+        Action string: CHARGE, HOLD, or EXPORT.
+    """
+    charge_threshold = charge_threshold or config.CHARGE_PRICE_THRESHOLD
+    export_threshold = export_threshold or config.EXPORT_PRICE_THRESHOLD
+    max_soc = max_soc or config.MAX_SOC_PERCENT
+    min_soc = min_soc or config.MIN_SOC_PERCENT
+    
+    # Rule 1: CHARGE if price <= threshold and SoC < max
+    if price <= charge_threshold and soc_percent < max_soc:
+        return Action.CHARGE
+    
+    # Rule 2: EXPORT if price >= threshold and SoC > min
+    if price >= export_threshold and soc_percent > min_soc:
+        return Action.EXPORT
+    
+    # Rule 3: HOLD otherwise
+    return Action.HOLD
