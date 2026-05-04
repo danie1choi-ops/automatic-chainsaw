@@ -80,6 +80,7 @@ def run_live_paper(price_feed: BasePriceFeed = None):
             decision = strategy.decide(
                 price_per_kwh=live_price.price_per_kwh,
                 battery_soc_percent=battery.soc_percent,
+                timestamp=live_price.timestamp,
             )
             
             # Calculate energy amount (5 minute interval)
@@ -88,6 +89,10 @@ def run_live_paper(price_feed: BasePriceFeed = None):
                 decision=decision,
                 battery_capacity_kwh=config.BATTERY_CAPACITY_KWH,
                 interval_hours=interval_hours,
+                price_per_kwh=live_price.price_per_kwh,
+                export_threshold=strategy.export_price_threshold,
+                battery_soc_percent=battery.soc_percent,
+                battery_max_soc_percent=config.MAX_SOC_PERCENT,
             )
             
             # Execute action

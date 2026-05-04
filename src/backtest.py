@@ -4,6 +4,7 @@ import csv
 from datetime import datetime
 from pathlib import Path
 from typing import List
+import numpy as np
 
 from src import config
 from src.data_loader import PricePoint, load_price_data
@@ -64,6 +65,7 @@ def run_backtest(price_data: List[PricePoint]) -> dict:
             price=price_point.price_per_kwh,
             soc_percent=battery.soc_percent,
             price_history=price_history,
+            timestamp=price_point.timestamp,
         )
         
         # Determine reason
@@ -101,10 +103,42 @@ def run_backtest(price_data: List[PricePoint]) -> dict:
             
         elif action == Action.EXPORT:
             export_count += 1
-            # Full usable capacity per interval
+            
+            # Calculate dynamic threshold for export fraction
+            window_size = 288
+            export_percentile = 0.95
+            static_export_threshold = config.EXPORT_PRICE_THRESHOLD
+            dynamic_threshold = static_export_threshold
+            if len(price_history) >= window_size:
+                recent_prices = price_history[-window_size:]
+                dynamic_threshold = np.percentile(recent_prices, export_percentile * 100)
+            
+            # Compute price strength
+            strength = price_point.price_per_kwh / dynamic_threshold
+            
+            # Define export fraction based on price strength
+            if strength >= 1.5:
+                export_fraction = 1.0
+            elif strength >= 1.2:
+                export_fraction = 0.5
+            else:
+                export_fraction = 0.2
+            
+            # Adjust export fraction based on battery SoC
+            soc_ratio = battery.soc_percent / config.MAX_SOC_PERCENT
+            if soc_ratio > 0.8:
+                export_fraction += 0.2
+            elif soc_ratio < 0.4:
+                export_fraction -= 0.1
+            
+            # Clamp between 0.1 and 1.0
+            export_fraction = max(0.1, min(1.0, export_fraction))
+            
+            # Available energy per interval
             usable_capacity = config.BATTERY_CAPACITY_KWH * 0.75
             max_power_kwh = config.MAX_DISCHARGE_KW * interval_hours
-            energy_amount = min(usable_capacity, max_power_kwh)
+            available_energy = min(usable_capacity, max_power_kwh)
+            energy_amount = export_fraction * available_energy
             
             # Calculate how much we can actually discharge
             actual_discharge = battery.discharge(energy_amount, interval_hours)
