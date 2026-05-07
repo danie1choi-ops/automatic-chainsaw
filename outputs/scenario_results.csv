@@ -1,0 +1,5 @@
+Scenario,Import Price ($/kWh),Export Price ($/kWh),Gross Profit ($),Degradation Cost ($),Net Marginal Profit ($),Period Days,Annualised Profit ($/year),Simple Payback (years),Charged Energy (kWh),Exported Energy (kWh),Equivalent Cycles,Export Actions
+Wholesale Arbitrage Mode,0.1000,0.1500,0.92,0.83,0.09,1.0,33.91,501.2592911112513,6.24,10.29,1.22,27
+Retail Import/Feed-in Tariff Mode,0.3500,0.1200,-1.14,0.91,-2.05,1.0,-748.71,,7.08,11.12,1.35,67
+Existing Battery Marginal Mode,0.2500,0.1500,-0.05,0.86,-0.91,1.0,-332.15,,6.58,10.62,1.27,64
+New Battery Full-Cost Mode,0.3000,0.1800,-0.06,0.86,-0.92,1.0,-335.80,,6.58,10.62,1.27,64

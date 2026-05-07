@@ -11,6 +11,13 @@ from src.performance import calculate_investment_metrics, print_investment_summa
 from src.live_runner import run_live_paper
 from src.price_feed import create_price_feed
 from src.nemosis_loader import download_dispatch_prices_nemosis, validate_date_format
+from src.tariff_scenarios import run_all_scenarios, print_scenario_summary, export_scenario_results_csv
+from src.solar_backtest import run_solar_backtest, print_solar_backtest_results
+from src.solar_load_model import (
+    DEFAULT_SOLAR_PROFILE,
+    DEFAULT_HOUSEHOLD_LOAD,
+    SolarProfile,
+)
 
 
 def run_scenarios():
@@ -62,6 +69,33 @@ def main():
         "--end-date",
         type=str,
         help="End date for download-nemosis mode in YYYY-MM-DD format"
+    )
+    parser.add_argument(
+        "--scenarios",
+        action="store_true",
+        help="Run tariff scenario analysis (only works with --mode backtest)"
+    )
+    parser.add_argument(
+        "--scenario-output",
+        type=str,
+        help="Output CSV file for scenario results"
+    )
+    parser.add_argument(
+        "--solar",
+        action="store_true",
+        help="Run solar + load backtest (only works with --mode backtest)"
+    )
+    parser.add_argument(
+        "--solar-peak-kw",
+        type=float,
+        default=8.0,
+        help="Solar system peak power in kW (default: 8.0)"
+    )
+    parser.add_argument(
+        "--import-price",
+        type=float,
+        default=0.30,
+        help="Average grid import price for solar savings calculation (default: 0.30)"
     )
     
     args = parser.parse_args()
@@ -124,14 +158,44 @@ def main():
         price_data = load_price_data(file_path)
         print(f"Loaded {len(price_data)} price points")
         
-        # Run backtest
-        print("\nRunning backtest...")
-        results = run_backtest(price_data)
-        print_backtest_results(results)
-        
-        # Calculate and print investment metrics
-        investment_metrics = calculate_investment_metrics(results, price_data)
-        print_investment_summary(results, investment_metrics)
+        # Run solar backtest if requested
+        if args.solar:
+            print("\nRunning solar + load backtest...")
+            # Create custom solar profile with user-specified peak power
+            solar_profile = SolarProfile(
+                peak_hour=DEFAULT_SOLAR_PROFILE.peak_hour,
+                peak_power_kw=args.solar_peak_kw,
+                sunrise_hour=DEFAULT_SOLAR_PROFILE.sunrise_hour,
+                sunset_hour=DEFAULT_SOLAR_PROFILE.sunset_hour,
+            )
+            
+            backtest_results, solar_load_results = run_solar_backtest(
+                price_data,
+                solar_profile=solar_profile,
+                household_load=DEFAULT_HOUSEHOLD_LOAD,
+                import_price_per_kwh=args.import_price,
+            )
+            print_solar_backtest_results(backtest_results)
+            print(solar_load_results)
+        # Run tariff scenarios if requested
+        elif args.scenarios:
+            print("\nRunning tariff scenario analysis...")
+            scenario_results = run_all_scenarios(price_data)
+            print_scenario_summary(scenario_results)
+            
+            # Export to CSV if output path specified
+            if args.scenario_output:
+                export_scenario_results_csv(scenario_results, args.scenario_output)
+                print(f"\n✓ Scenario results saved to: {args.scenario_output}")
+        else:
+            # Run standard backtest
+            print("\nRunning backtest...")
+            results = run_backtest(price_data)
+            print_backtest_results(results)
+            
+            # Calculate and print investment metrics
+            investment_metrics = calculate_investment_metrics(results, price_data)
+            print_investment_summary(results, investment_metrics)
         
     elif args.mode == "live":
         print("Starting live paper mode...")
