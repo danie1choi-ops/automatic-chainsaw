@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="560" viewBox="0 0 980 560">
+<rect width="100%" height="100%" fill="#ffffff" />
+<text x="490.0" y="30.0" font-family="Arial, sans-serif" font-size="18" font-weight="700" text-anchor="middle" fill="#222222">Profit vs Participation</text>
+<line x1="80" y1="480" x2="900" y2="480" stroke="#333333" />
+<line x1="80" y1="80" x2="80" y2="480" stroke="#333333" />
+<polyline points="80.0,83.8 285.0,84.5 490.0,85.0 695.0,85.0 900.0,85.0" fill="none" stroke="#2f80ed" stroke-width="2.5" />
+<polyline points="80.0,83.8 285.0,80.0 490.0,88.7 695.0,124.2 900.0,480.0" fill="none" stroke="#27ae60" stroke-width="2.5" />
+<rect x="670" y="45" width="12" height="12" fill="#2f80ed" />
+<text x="688.0" y="55.0" font-family="Arial, sans-serif" font-size="12" font-weight="400" text-anchor="start" fill="#222222">per_battery_profit</text>
+<rect x="670" y="65" width="12" height="12" fill="#27ae60" />
+<text x="688.0" y="75.0" font-family="Arial, sans-serif" font-size="12" font-weight="400" text-anchor="start" fill="#222222">fleet_profit</text>
+</svg>

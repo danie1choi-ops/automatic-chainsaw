@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1040" height="600" viewBox="0 0 1040 600">
+<rect width="100%" height="100%" fill="#ffffff" />
+<text x="520.0" y="30.0" font-family="Arial, sans-serif" font-size="18" font-weight="700" text-anchor="middle" fill="#222222">Regime Contribution Changes</text>
+<line x1="80" y1="520" x2="960" y2="520" stroke="#333333" />
+<line x1="80" y1="80" x2="80" y2="520" stroke="#333333" />
+<polyline points="80.0,404.2 300.0,415.7 520.0,131.9 740.0,142.0 960.0,143.4" fill="none" stroke="#2f80ed" stroke-width="2.5" />
+<polyline points="80.0,359.1 300.0,366.3 520.0,283.4 740.0,353.7 960.0,363.7" fill="none" stroke="#8e44ad" stroke-width="2.5" />
+<polyline points="80.0,397.6 300.0,400.3 520.0,333.9 740.0,336.2 960.0,336.6" fill="none" stroke="#27ae60" stroke-width="2.5" />
+<polyline points="80.0,103.1 300.0,80.0 520.0,520.0 740.0,412.6 960.0,397.3" fill="none" stroke="#c0392b" stroke-width="2.5" />
+<polyline points="80.0,372.2 300.0,373.9 520.0,367.1 740.0,391.7 960.0,395.2" fill="none" stroke="#f2a900" stroke-width="2.5" />
+<rect x="730" y="45" width="12" height="12" fill="#2f80ed" />
+<text x="748.0" y="55.0" font-family="Arial, sans-serif" font-size="12" font-weight="400" text-anchor="start" fill="#222222">normal</text>
+<rect x="730" y="65" width="12" height="12" fill="#8e44ad" />
+<text x="748.0" y="75.0" font-family="Arial, sans-serif" font-size="12" font-weight="400" text-anchor="start" fill="#222222">volatile</text>
+<rect x="730" y="85" width="12" height="12" fill="#27ae60" />
+<text x="748.0" y="95.0" font-family="Arial, sans-serif" font-size="12" font-weight="400" text-anchor="start" fill="#222222">negative_pricing</text>
+<rect x="730" y="105" width="12" height="12" fill="#c0392b" />
+<text x="748.0" y="115.0" font-family="Arial, sans-serif" font-size="12" font-weight="400" text-anchor="start" fill="#222222">price_spike</text>
+<rect x="730" y="125" width="12" height="12" fill="#f2a900" />
+<text x="748.0" y="135.0" font-family="Arial, sans-serif" font-size="12" font-weight="400" text-anchor="start" fill="#222222">sustained_high_price_event</text>
+</svg>

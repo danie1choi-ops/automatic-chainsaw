@@ -1,0 +1,6 @@
+regime,interval_count,average_profit,total_profit,average_spread_captured,energy_exported,export_interval_count,cycle_contribution,degradation_contribution,profitability_share,profitable,degradation_dominates,average_price
+normal,35312,-0.0002792903262,-9.8623,0.1485538742,179.31,943,44.47192593,30.01855,-0.02525628769,False,True,0.08388596545
+volatile,3738,0.01114719101,41.6682,0.2421906914,193.523,753,17.254,11.64645,0.1067077707,True,False,0.1705288531
+negative_pricing,3777,-0.0006110669844,-2.308,,0,0,4.92962963,3.3275,-0.005910539326,False,True,-0.0251883718
+price_spike,181,1.846978453,334.3031,,59.952,163,4.440888889,2.9976,0.8561142199,True,False,4.75291026
+sustained_high_price_event,1055,0.02529658768,26.6879,,94.983,495,7.035777778,4.74915,0.06834483643,True,False,0.3088782406

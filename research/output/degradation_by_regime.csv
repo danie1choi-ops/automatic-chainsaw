@@ -1,0 +1,6 @@
+regime,degradation_contribution,degradation_dominates
+normal,30.01855,True
+volatile,11.64645,False
+negative_pricing,3.3275,True
+price_spike,2.9976,False
+sustained_high_price_event,4.74915,False

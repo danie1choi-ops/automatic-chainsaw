@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="520" viewBox="0 0 900 520">
+<rect width="100%" height="100%" fill="#ffffff" />
+<text x="450.0" y="28.0" font-family="Arial, sans-serif" font-size="18" font-weight="700" text-anchor="middle" fill="#222222">Duration vs Profitability</text>
+<line x1="80.0" y1="440.0" x2="820.0" y2="440.0" stroke="#333333" stroke-width="1" />
+<line x1="80.0" y1="80.0" x2="80.0" y2="440.0" stroke="#333333" stroke-width="1" />
+<circle cx="673.0" cy="449.1" r="7.0" fill="#2f80ed" />
+<text x="683.0" y="441.1" font-family="Arial, sans-serif" font-size="12" font-weight="400" text-anchor="start" fill="#222222">normal</text>
+<circle cx="142.8" cy="401.6" r="7.0" fill="#2f80ed" />
+<text x="152.8" y="393.6" font-family="Arial, sans-serif" font-size="12" font-weight="400" text-anchor="start" fill="#222222">volatile</text>
+<circle cx="143.4" cy="442.1" r="7.0" fill="#2f80ed" />
+<text x="153.4" y="434.1" font-family="Arial, sans-serif" font-size="12" font-weight="400" text-anchor="start" fill="#222222">negative_pricing</text>
+<circle cx="83.0" cy="131.8" r="7.0" fill="#2f80ed" />
+<text x="93.0" y="123.8" font-family="Arial, sans-serif" font-size="12" font-weight="400" text-anchor="start" fill="#222222">price_spike</text>
+<circle cx="97.7" cy="415.4" r="7.0" fill="#2f80ed" />
+<text x="107.7" y="407.4" font-family="Arial, sans-serif" font-size="12" font-weight="400" text-anchor="start" fill="#222222">sustained_high_price_event</text>
+<text x="450.0" y="495.0" font-family="Arial, sans-serif" font-size="13" font-weight="400" text-anchor="middle" fill="#222222">Interval Share</text>
+<text x="25.0" y="260.0" font-family="Arial, sans-serif" font-size="13" font-weight="400" text-anchor="start" fill="#222222">Profit Share</text>
+</svg>

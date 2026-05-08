@@ -1,0 +1,13 @@
+metric,value
+total_price_rows,44063
+total_backtest_rows,44063
+matched_rows,44063
+matched_percent,100
+missing_interval_count,0
+unused_market_interval_count,0
+duplicate_price_timestamp_count,0
+duplicate_backtest_timestamp_count,0
+price_start,2024-01-01T00:05:00
+price_end,2024-06-01T23:55:00
+backtest_start,2024-01-01T00:05:00
+backtest_end,2024-06-01T23:55:00

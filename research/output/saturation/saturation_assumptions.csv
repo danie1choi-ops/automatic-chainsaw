@@ -1,0 +1,8 @@
+parameter,value
+participation_levels,"1,10,100,1000,10000"
+battery_size,13.5
+reaction_aggressiveness,1
+spread_compression_factor,0.05
+export_window_competition_factor,0.02
+degradation_cost_per_energy,0.05
+affected_regimes,"volatile,price_spike,sustained_high_price_event"

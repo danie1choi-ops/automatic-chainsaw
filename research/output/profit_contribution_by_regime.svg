@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="520" viewBox="0 0 900 520">
+<rect width="100%" height="100%" fill="#ffffff" />
+<text x="450.0" y="28.0" font-family="Arial, sans-serif" font-size="18" font-weight="700" text-anchor="middle" fill="#222222">Profit Contribution by Regime</text>
+<line x1="80.0" y1="429.7" x2="820.0" y2="429.7" stroke="#333333" stroke-width="1" />
+<rect x="105.9" y="429.7" width="96.2" height="10.3" fill="#c0392b" />
+<text x="154.0" y="485.0" font-family="Arial, sans-serif" font-size="12" font-weight="400" text-anchor="middle" fill="#222222">normal</text>
+<text x="154.0" y="458.0" font-family="Arial, sans-serif" font-size="12" font-weight="400" text-anchor="middle" fill="#222222">-9.86</text>
+<rect x="253.9" y="386.1" width="96.2" height="43.6" fill="#2f80ed" />
+<text x="302.0" y="485.0" font-family="Arial, sans-serif" font-size="12" font-weight="400" text-anchor="middle" fill="#222222">volatile</text>
+<text x="302.0" y="378.1" font-family="Arial, sans-serif" font-size="12" font-weight="400" text-anchor="middle" fill="#222222">41.67</text>
+<rect x="401.9" y="429.7" width="96.2" height="2.4" fill="#c0392b" />
+<text x="450.0" y="485.0" font-family="Arial, sans-serif" font-size="12" font-weight="400" text-anchor="middle" fill="#222222">negative_pricing</text>
+<text x="450.0" y="450.1" font-family="Arial, sans-serif" font-size="12" font-weight="400" text-anchor="middle" fill="#222222">-2.31</text>
+<rect x="549.9" y="80.0" width="96.2" height="349.7" fill="#2f80ed" />
+<text x="598.0" y="485.0" font-family="Arial, sans-serif" font-size="12" font-weight="400" text-anchor="middle" fill="#222222">price_spike</text>
+<text x="598.0" y="72.0" font-family="Arial, sans-serif" font-size="12" font-weight="400" text-anchor="middle" fill="#222222">334.30</text>
+<rect x="697.9" y="401.8" width="96.2" height="27.9" fill="#2f80ed" />
+<text x="746.0" y="485.0" font-family="Arial, sans-serif" font-size="12" font-weight="400" text-anchor="middle" fill="#222222">sustained_high_price_event</text>
+<text x="746.0" y="393.8" font-family="Arial, sans-serif" font-size="12" font-weight="400" text-anchor="middle" fill="#222222">26.69</text>
+<text x="80.0" y="45.0" font-family="Arial, sans-serif" font-size="12" font-weight="400" text-anchor="start" fill="#222222">Profit</text>
+</svg>

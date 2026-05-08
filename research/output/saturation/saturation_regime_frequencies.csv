@@ -1,0 +1,6 @@
+regime,interval_count,interval_share
+normal,35312,0.8013979983
+volatile,3738,0.08483307991
+negative_pricing,3777,0.08571817625
+price_spike,181,0.004107754806
+sustained_high_price_event,1055,0.02394299072
