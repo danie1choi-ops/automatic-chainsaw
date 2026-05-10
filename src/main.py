@@ -8,8 +8,8 @@ from src import config
 from src.data_loader import load_price_data
 from src.backtest import run_backtest, print_backtest_results
 from src.performance import calculate_investment_metrics, print_investment_summary
-from src.live_runner import run_live_paper
-from src.price_feed import create_price_feed
+from src.live_runner import run_live_observation, run_live_paper
+from src.price_feed import MockLivePriceFeed, create_price_feed
 from src.nemosis_loader import download_dispatch_prices_nemosis, validate_date_format
 from src.tariff_scenarios import run_all_scenarios, print_scenario_summary, export_scenario_results_csv
 from src.solar_backtest import run_solar_backtest, print_solar_backtest_results
@@ -39,9 +39,9 @@ def main():
     )
     parser.add_argument(
         "--mode",
-        choices=["scenarios", "manual", "backtest", "live", "download-nemosis"],
+        choices=["scenarios", "manual", "backtest", "live", "live-observe", "download-nemosis"],
         default="backtest",
-        help="Run mode: 'scenarios', 'manual', 'backtest', 'live', or 'download-nemosis' (default: backtest)"
+        help="Run mode: 'scenarios', 'manual', 'backtest', 'live', 'live-observe', or 'download-nemosis' (default: backtest)"
     )
     parser.add_argument(
         "--file",
@@ -96,6 +96,12 @@ def main():
         type=float,
         default=0.30,
         help="Average grid import price for solar savings calculation (default: 0.30)"
+    )
+    parser.add_argument(
+        "--poll-seconds",
+        type=float,
+        default=None,
+        help="Polling interval for live-observe mode in seconds (default: 300)"
     )
     
     args = parser.parse_args()
@@ -207,6 +213,19 @@ def main():
             sys.exit(1)
         
         run_live_paper(price_feed)
+    elif args.mode == "live-observe":
+        print("Starting live observation mode...")
+        price_feed = create_price_feed(args.feed)
+
+        if not price_feed.is_available():
+            print(f"Warning: {args.feed} price feed is not available.")
+            print("Falling back to mock price feed for observation mode.")
+            price_feed = MockLivePriceFeed()
+
+        run_live_observation(
+            price_feed=price_feed,
+            poll_seconds=args.poll_seconds,
+        )
 
 
 if __name__ == "__main__":

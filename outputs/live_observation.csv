@@ -1,0 +1,2 @@
+timestamp,price,regime,action,simulated_soc,simulated_cashflow,reason
+2026-05-11T07:42:12.765193,0.123061,normal,HOLD,50.00,0.000000,No price signal
