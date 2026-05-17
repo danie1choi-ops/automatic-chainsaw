@@ -1,2 +1,93 @@
 timestamp,price,regime,action,simulated_soc,simulated_cashflow,reason
 2026-05-11T07:42:12.765193,0.123061,normal,HOLD,50.00,0.000000,No price signal
+2026-05-12T20:47:29.373506,0.254726,price_spike,EXPORT,46.91,0.085302,Price at or above export threshold
+2026-05-12T20:52:29.371017,0.108958,normal,HOLD,46.91,0.000000,No price signal
+2026-05-12T20:57:29.365415,0.133045,normal,HOLD,46.91,0.000000,No price signal
+2026-05-13T06:02:05.178787,0.291877,price_spike,EXPORT,43.83,0.100782,Price at or above export threshold
+2026-05-13T07:52:26.072014,0.167772,normal,HOLD,43.83,0.000000,No price signal
+2026-05-13T07:57:26.079927,0.225635,normal,HOLD,43.83,0.000000,No price signal
+2026-05-13T08:02:26.086967,0.101515,normal,HOLD,43.83,0.000000,No price signal
+2026-05-13T08:07:26.098880,0.219150,normal,HOLD,43.83,0.000000,No price signal
+2026-05-13T08:12:26.105638,0.125137,normal,HOLD,43.83,0.000000,No price signal
+2026-05-13T08:17:26.112606,0.286428,price_spike,EXPORT,40.74,0.098511,Price at or above export threshold
+2026-05-13T08:22:26.043466,0.143538,normal,HOLD,40.74,0.000000,No price signal
+2026-05-13T08:27:26.043867,0.189571,volatile,HOLD,40.74,0.000000,No price signal
+2026-05-13T08:32:34.004333,0.262065,price_spike,EXPORT,37.65,0.088361,Price at or above export threshold
+2026-05-13T08:37:34.005936,0.288862,price_spike,EXPORT,34.57,0.099526,Price at or above export threshold
+2026-05-13T08:42:34.006965,0.164518,volatile,HOLD,34.57,0.000000,No price signal
+2026-05-13T08:47:34.004844,0.214589,volatile,HOLD,34.57,0.000000,No price signal
+2026-05-13T08:52:34.005654,0.214291,sustained_high_price_event,HOLD,34.57,0.000000,No price signal
+2026-05-13T08:57:34.003519,0.213652,sustained_high_price_event,HOLD,34.57,0.000000,No price signal
+2026-05-13T09:02:34.067494,0.297939,price_spike,EXPORT,31.48,0.103308,Price at or above export threshold
+2026-05-13T09:07:34.073732,0.267900,price_spike,EXPORT,28.40,0.090792,Price at or above export threshold
+2026-05-13T09:12:34.080778,0.253022,price_spike,EXPORT,25.31,0.084592,Price at or above export threshold
+2026-05-13T09:17:34.087670,0.122884,volatile,HOLD,25.31,0.000000,No price signal
+2026-05-13T13:11:36.848226,0.281357,price_spike,EXPORT,22.22,0.096399,Price at or above export threshold
+2026-05-13T21:15:16.283521,0.101377,volatile,HOLD,22.22,0.000000,No price signal
+2026-05-14T06:01:30.403966,0.253863,price_spike,EXPORT,20.00,0.061159,Price at or above export threshold
+2026-05-14T15:01:48.930800,0.273336,price_spike,EXPORT,46.91,0.093057,Price at or above export threshold
+2026-05-14T15:06:48.931478,0.133520,normal,HOLD,46.91,0.000000,No price signal
+2026-05-14T15:11:48.932882,0.147477,normal,HOLD,46.91,0.000000,No price signal
+2026-05-14T16:07:02.980625,0.154782,normal,HOLD,46.91,0.000000,No price signal
+2026-05-15T07:38:43.582037,0.152561,normal,HOLD,50.00,0.000000,No price signal
+2026-05-15T07:43:43.588447,0.147063,normal,HOLD,50.00,0.000000,No price signal
+2026-05-15T07:48:43.596106,0.188711,normal,HOLD,50.00,0.000000,No price signal
+2026-05-15T07:53:43.599874,0.218519,normal,HOLD,50.00,0.000000,No price signal
+2026-05-15T07:58:43.606093,0.282444,price_spike,EXPORT,46.91,0.096852,Price at or above export threshold
+2026-05-15T08:03:43.567898,0.110800,normal,HOLD,46.91,0.000000,No price signal
+2026-05-15T08:08:43.575665,0.111452,normal,HOLD,46.91,0.000000,No price signal
+2026-05-15T08:13:43.579696,0.285308,price_spike,EXPORT,43.83,0.098045,Price at or above export threshold
+2026-05-15T08:18:43.587551,0.183874,normal,HOLD,43.83,0.000000,No price signal
+2026-05-15T08:23:43.595344,0.196143,normal,HOLD,43.83,0.000000,No price signal
+2026-05-15T08:28:43.634288,0.264578,price_spike,EXPORT,40.74,0.089407,Price at or above export threshold
+2026-05-15T08:33:43.650594,0.163723,volatile,HOLD,40.74,0.000000,No price signal
+2026-05-15T08:38:43.663016,0.225044,sustained_high_price_event,HOLD,40.74,0.000000,No price signal
+2026-05-15T08:43:43.674761,0.154822,sustained_high_price_event,HOLD,40.74,0.000000,No price signal
+2026-05-15T08:48:43.686516,0.177627,sustained_high_price_event,HOLD,40.74,0.000000,No price signal
+2026-05-15T08:53:43.694199,0.288872,price_spike,EXPORT,37.65,0.099530,Price at or above export threshold
+2026-05-15T08:58:43.712702,0.199661,sustained_high_price_event,HOLD,37.65,0.000000,No price signal
+2026-05-15T09:03:43.723134,0.185704,sustained_high_price_event,HOLD,37.65,0.000000,No price signal
+2026-05-15T09:08:43.725513,0.276686,price_spike,EXPORT,34.57,0.094453,Price at or above export threshold
+2026-05-15T09:13:43.734387,0.198673,sustained_high_price_event,HOLD,34.57,0.000000,No price signal
+2026-05-15T09:18:43.743802,0.192070,sustained_high_price_event,HOLD,34.57,0.000000,No price signal
+2026-05-15T09:23:43.752215,0.135369,normal,HOLD,34.57,0.000000,No price signal
+2026-05-15T09:28:43.698564,0.190984,normal,HOLD,34.57,0.000000,No price signal
+2026-05-15T09:33:43.705463,0.101010,volatile,HOLD,34.57,0.000000,No price signal
+2026-05-15T09:38:43.710382,0.206233,normal,HOLD,34.57,0.000000,No price signal
+2026-05-15T09:43:43.713955,0.108657,volatile,HOLD,34.57,0.000000,No price signal
+2026-05-15T09:48:43.717538,0.281132,price_spike,EXPORT,31.48,0.096305,Price at or above export threshold
+2026-05-15T09:53:43.724340,0.193153,volatile,HOLD,31.48,0.000000,No price signal
+2026-05-15T09:58:43.721209,0.276332,price_spike,EXPORT,28.40,0.094305,Price at or above export threshold
+2026-05-15T10:03:43.727763,0.260616,price_spike,EXPORT,25.31,0.087756,Price at or above export threshold
+2026-05-15T10:08:43.734199,0.204288,volatile,HOLD,25.31,0.000000,No price signal
+2026-05-15T13:29:46.031187,0.180009,sustained_high_price_event,HOLD,25.31,0.000000,No price signal
+2026-05-15T18:36:04.915957,0.190532,sustained_high_price_event,HOLD,25.31,0.000000,No price signal
+2026-05-16T07:59:11.513174,0.121962,normal,HOLD,50.00,0.000000,No price signal
+2026-05-16T08:04:11.519685,0.121080,normal,HOLD,50.00,0.000000,No price signal
+2026-05-17T07:03:06.712108,0.240101,price_spike,EXPORT,46.91,0.079209,Price at or above export threshold
+2026-05-17T07:22:07.391127,0.286563,price_spike,EXPORT,43.83,0.098568,Price at or above export threshold
+2026-05-17T07:27:07.391354,0.276551,price_spike,EXPORT,40.74,0.094396,Price at or above export threshold
+2026-05-17T07:32:07.578435,0.130319,normal,HOLD,40.74,0.000000,No price signal
+2026-05-17T07:37:07.578657,0.185353,normal,HOLD,40.74,0.000000,No price signal
+2026-05-17T07:42:07.580960,0.155490,normal,HOLD,40.74,0.000000,No price signal
+2026-05-17T08:02:06.860052,0.247076,price_spike,EXPORT,37.65,0.082115,Price at or above export threshold
+2026-05-17T08:22:50.596030,0.194637,normal,HOLD,37.65,0.000000,No price signal
+2026-05-17T08:42:53.809155,0.219636,normal,HOLD,37.65,0.000000,No price signal
+2026-05-17T08:47:53.813584,0.129049,normal,HOLD,37.65,0.000000,No price signal
+2026-05-17T08:52:53.816577,0.258299,price_spike,EXPORT,34.57,0.086791,Price at or above export threshold
+2026-05-17T08:57:53.821828,0.287028,price_spike,EXPORT,31.48,0.098761,Price at or above export threshold
+2026-05-17T09:02:53.828178,0.208459,volatile,HOLD,31.48,0.000000,No price signal
+2026-05-17T09:07:53.834888,0.258599,price_spike,EXPORT,28.40,0.086916,Price at or above export threshold
+2026-05-17T09:12:53.854869,0.191774,normal,HOLD,28.40,0.000000,No price signal
+2026-05-17T09:21:50.786861,0.170749,sustained_high_price_event,HOLD,28.40,0.000000,No price signal
+2026-05-17T09:26:50.796870,0.167425,sustained_high_price_event,HOLD,28.40,0.000000,No price signal
+2026-05-17T09:31:50.802876,0.224478,sustained_high_price_event,HOLD,28.40,0.000000,No price signal
+2026-05-17T09:36:50.813244,0.158137,sustained_high_price_event,HOLD,28.40,0.000000,No price signal
+2026-05-17T14:28:52.714619,0.251103,price_spike,EXPORT,25.31,0.083793,Price at or above export threshold
+2026-05-17T14:34:06.307232,0.281029,price_spike,EXPORT,22.22,0.096262,Price at or above export threshold
+2026-05-17T14:39:06.309263,0.241702,price_spike,EXPORT,20.00,0.057510,Price at or above export threshold
+2026-05-17T14:44:06.310996,0.194318,sustained_high_price_event,HOLD,20.00,0.000000,No price signal
+2026-05-17T14:49:06.312668,0.285722,price_spike,HOLD,20.00,0.000000,Battery below min SoC
+2026-05-17T14:59:22.356978,0.260747,price_spike,HOLD,20.00,0.000000,Battery below min SoC
+2026-05-17T15:04:22.363059,0.104002,volatile,HOLD,20.00,0.000000,No price signal
+2026-05-17T15:09:22.366493,0.160389,volatile,HOLD,20.00,0.000000,No price signal
