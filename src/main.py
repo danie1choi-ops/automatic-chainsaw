@@ -9,6 +9,7 @@ from src.data_loader import load_price_data
 from src.backtest import run_backtest, print_backtest_results
 from src.performance import calculate_investment_metrics, print_investment_summary
 from src.live_runner import run_live_observation, run_live_paper
+from src.live_summary import run_live_summary
 from src.price_feed import MockLivePriceFeed, create_price_feed
 from src.nemosis_loader import download_dispatch_prices_nemosis, validate_date_format
 from src.tariff_scenarios import run_all_scenarios, print_scenario_summary, export_scenario_results_csv
@@ -39,9 +40,17 @@ def main():
     )
     parser.add_argument(
         "--mode",
-        choices=["scenarios", "manual", "backtest", "live", "live-observe", "download-nemosis"],
+        choices=[
+            "scenarios",
+            "manual",
+            "backtest",
+            "live",
+            "live-observe",
+            "live-summary",
+            "download-nemosis",
+        ],
         default="backtest",
-        help="Run mode: 'scenarios', 'manual', 'backtest', 'live', 'live-observe', or 'download-nemosis' (default: backtest)"
+        help="Run mode: 'scenarios', 'manual', 'backtest', 'live', 'live-observe', 'live-summary', or 'download-nemosis' (default: backtest)"
     )
     parser.add_argument(
         "--file",
@@ -226,6 +235,12 @@ def main():
             price_feed=price_feed,
             poll_seconds=args.poll_seconds,
         )
+    elif args.mode == "live-summary":
+        try:
+            run_live_summary()
+        except FileNotFoundError as e:
+            print(f"Error: {e}")
+            sys.exit(1)
 
 
 if __name__ == "__main__":
